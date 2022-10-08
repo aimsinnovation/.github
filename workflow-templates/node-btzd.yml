@@ -40,6 +40,7 @@ jobs:
   deploy: 
     uses: aimsinnovation/gha-zip-deploy/.github/workflows/gha-zip-deploy.yml@main
     secrets:
-      scm-auth: ${{ secrets.USER_SCOPE_CREDENTIALS }}
+      scm-auth: ${{ secrets.USER_SCOPE_CREDENTIALS }} 
     with: 
       scm-url: ${{ format('https://{0}.scm.azurewebsites.net/api/zipdeploy') }}
+      artifact-name: app
