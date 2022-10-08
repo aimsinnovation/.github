@@ -1,0 +1,45 @@
+name: Build, test, zip and deploy for node projects
+
+on:
+  push:
+    branches:
+      - develop 
+
+# configuration goes here
+env: 
+  node-version: 16
+  target-app: 'some app'
+
+jobs: 
+  build-test-zip: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: ${{ env.node_version }}
+
+    - name: "Build"
+      run: | 
+        npm ci
+
+    - name: "Test"
+      run: |
+        npm run test --if-present
+
+    - name: "Zip artifacts"
+      run: | 
+        zip -r app.zip . -x .git/\*
+
+    - uses: actions/upload-artifact@master
+      if: ${{ !env.ACT }}
+      with:
+        path: app.zip
+        name: app
+
+  deploy: 
+    uses: aimsinnovation/gha-zip-deploy/.github/workflows/gha-zip-deploy.yml@main
+    secrets:
+      scm-auth: ${{ secrets.USER_SCOPE_CREDENTIALS }}
+    with: 
+      scm-url: ${{ format('https://{0}.scm.azurewebsites.net/api/zipdeploy') }}

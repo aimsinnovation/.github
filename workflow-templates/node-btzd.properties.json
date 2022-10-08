@@ -1,0 +1,10 @@
+{
+    "name": "Node BTZD",
+    "description": "Build, test and deploy generic node project",
+    "categories": [
+        "node"
+    ],
+    "filePatterns": [
+        "package.json$"
+    ]
+}
