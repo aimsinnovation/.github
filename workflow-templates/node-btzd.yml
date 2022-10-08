@@ -3,12 +3,14 @@ name: Build, test, zip and deploy for node projects
 on:
   push:
     branches:
-      - develop 
-
-# configuration goes here
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+      
+# fill in node version
 env: 
-  node-version: 16
-  target-app: 'some app'
+  node_version: 16
 
 jobs: 
   build-test-zip: 
@@ -24,10 +26,10 @@ jobs:
         npm ci
 
     - name: "Test"
-      run: |
-        npm run test --if-present
-
-    - name: "Zip artifacts"
+      run: | 
+        echo Run tests
+        
+    - name: "Package app.zip"
       run: | 
         zip -r app.zip . -x .git/\*
 
@@ -37,10 +39,24 @@ jobs:
         path: app.zip
         name: app
 
-  deploy: 
-    uses: aimsinnovation/gha-zip-deploy/.github/workflows/gha-zip-deploy.yml@main
-    secrets:
-      scm-auth: ${{ secrets.USER_SCOPE_CREDENTIALS }} 
+  deploy-dev: 
+    # fill in dev branch
+    if: ${{ (github.head_ref || github.ref_name) == 'develop' }}
+    uses: aimsinnovation/public-workflows/.github/workflows/zip-deploy.yml@master
+    needs: build-test-zip
+    secrets: inherit
     with: 
-      scm-url: ${{ format('https://{0}.scm.azurewebsites.net/api/zipdeploy') }}
-      artifact-name: app
+      # change APP_DEV_NAME to dev app name
+      scm_url: ${{ format('https://{0}.scm.azurewebsites.net/api/zipdeploy', 'APP_DEV_NAME') }}
+      artifact_name: app
+
+  deploy-staging: 
+    # fill in staging branch
+    if: ${{ (github.head_ref || github.ref_name) == 'master' }}
+    uses: aimsinnovation/public-workflows/.github/workflows/zip-deploy.yml@master
+    needs: build-test-zip
+    secrets: inherit
+    with: 
+      # change APP_STAGING to staging app name
+      scm_url: ${{ format('https://{0}.scm.azurewebsites.net/api/zipdeploy', 'APP_STAGING_NAME') }}
+      artifact_name: app
